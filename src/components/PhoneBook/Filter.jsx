@@ -1,5 +1,3 @@
-import css from './PhoneBook.module.css';
-
 import React from 'react';
 
 export default function Filter({ filter, onFilterChange }) {
