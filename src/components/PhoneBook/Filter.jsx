@@ -1,17 +1,18 @@
 import css from './PhoneBook.module.css';
 
-export const Filter = ({ handleInput, state }) => {
+import React from 'react';
+
+export default function Filter({ filter, onFilterChange }) {
+  const handleChange = e => {
+    onFilterChange(e.target.value);
+  };
+
   return (
-    <div>
-      <h2 className={css.title}>Contacts</h2>
-      <input
-        className={css.input}
-        type="text"
-        name="filter"
-        value={state.filter}
-        onChange={handleInput}
-        required
-      />
-    </div>
+    <input
+      type="text"
+      value={filter}
+      onChange={handleChange}
+      placeholder="Search contacts by name"
+    />
   );
-};
+}

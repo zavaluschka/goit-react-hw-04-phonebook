@@ -1,90 +1,65 @@
 import PhoneBook from "./PhoneBook/PhoneBook";
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { nanoid } from 'nanoid';
-import { Filter } from "./PhoneBook/Filter";
-import { ContactList } from "./PhoneBook/ContactList";
+import  Filter  from "./PhoneBook/Filter";
+import  ContactList from "./PhoneBook/ContactList";
 
-export class App extends Component {
-   state = {
-    contacts: [],
-    filter: '',
+
+
+export function App() {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    const stringifiedContacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(stringifiedContacts) ?? [];
+    setContacts(parsedContacts);
+  }, []);
+
+  useEffect(() => {
+    const stringifiedContacts = JSON.stringify(contacts);
+    localStorage.setItem('contacts', stringifiedContacts);
+  }, [contacts]);
+
+  const addContact = (name, number) => {
+    const newContact = {
+      name,
+      number,
+      id: nanoid(),
+    };
+    setContacts([...contacts, newContact]);
   };
 
-  handleAddContact = ({ event, name, number }) => {
-    event.preventDefault();
-    if (
-      this.state.contacts.some(
-        contact => contact.name === name || contact.number === number
-      )
-    ) {
-      alert('This contact alredy exist');
-      return;
-    }
-    this.setState(pervState => ({
-      contacts: [
-        { name: name, number: number, id: nanoid() },
-        ...pervState.contacts,
-      ],
-    }));
-  };
-   handleInput = event => {
-    this.setState({ [event.target.name]: event.target.value });
-    if ((event.target.name = 'filter')) {
-    }
-  };
-
-  
-  getFilteredContacts(filter) {
-    return this.state.contacts.filter(
-      contact =>
-        contact.name.toLowerCase().includes(filter.toLowerCase()) ||
-        contact.number.includes(filter)
+  const deleteContact = contactId => {
+    const updatedContacts = contacts.filter(
+      contact => contact.id !== contactId
     );
-  }
-
-  handleDelete = id => {
-    console.log();
-    this.setState(prevState => {
-      if (this.state.contacts.find(contact => contact.id === id)) {
-        prevState.contacts.splice(
-          this.state.contacts.indexOf(
-            this.state.contacts.find(contact => contact.id === id)
-          ),
-          1
-        );
-      }
-      return { contacts: prevState.contacts };
-    });
+    setContacts(updatedContacts);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts.length !== prevState.contacts.length) {
-      const stringiFiedContacts = JSON.stringify(this.state.contacts)
-      localStorage.setItem('contact', stringiFiedContacts)
-   }
-  }
-  componentDidMount() {
-    const stringiFiedContacts = localStorage.getItem('contact')
-    const parsedContacts = JSON.parse(stringiFiedContacts) ?? []
-    this.setState({
-      contacts: parsedContacts
-    })
-  }
-  render(){
-    return (
-      <div
-      
-      >
-        <PhoneBook handleAddContact={this.handleAddContact}
-        state={this.state}
-          handleInput={this.handleInput} />
-        <Filter handleInput={this.handleInput}
-           state={this.state}
-        />
-        <ContactList contacts={this.getFilteredContacts(this.state.filter)}
-          handleDelete={this.handleDelete}/>
-      
-      </div>
+  const handleFilterChange = filter => {
+    setFilter(filter);
+  };
+
+  const getFilteredContacts = () => {
+    const normalizedFilter = filter.toLowerCase();
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
     );
-  }
-};
+  };
+
+  const filteredContacts = getFilteredContacts();
+
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      <PhoneBook onAddContact={addContact} contacts={contacts} />
+      <h2>Contacts</h2>
+      <Filter filter={filter} onFilterChange={handleFilterChange} />
+      <ContactList
+        contacts={filteredContacts}
+        onDeleteContact={deleteContact}
+      />
+    </div>
+  );
+}
